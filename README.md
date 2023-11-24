@@ -20,7 +20,7 @@ How to obtain NPPSO:
   
 if you leave it to "None" the psn.flipscreen.games website will be used to obtain account id. In addition to the avatar functionalities not working.
 
-- Put your NPSSO and Discord token in .env
+- Put your NPSSO and Discord bot token in .env
 - Run main.py
 
 Enjoy!
