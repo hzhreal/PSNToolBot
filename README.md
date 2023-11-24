@@ -6,6 +6,7 @@ Discord bot used to mainly add PlayStation 3 avatars to shopping cart, and obtai
   ```
   pip install py-cord
   pip install python-dotenv
+  pip install PSNAWP
   ```
 
 # Tutorial
