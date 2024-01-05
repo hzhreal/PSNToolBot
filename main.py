@@ -48,6 +48,7 @@ async def on_ready() -> None:
 
 @bot.slash_command(description="Adds the avatar you input in your cart.")
 async def add(ctx, token: str, id: str, region: str) -> None:
+    await ctx.defer()
 
     if region not in valid_regions:
         await ctx.respond(embed=invalid_region, ephemeral=True)
@@ -57,6 +58,7 @@ async def add(ctx, token: str, id: str, region: str) -> None:
 
 @bot.slash_command(description="Checks an avatar for you.")
 async def check(ctx, token: str, id: str, region: str) -> None:
+    await ctx.defer()
 
     if region not in valid_regions:
         await ctx.respond(embed=invalid_region, ephemeral=True)
@@ -66,6 +68,7 @@ async def check(ctx, token: str, id: str, region: str) -> None:
 
 @bot.slash_command(description="Grabs the product ID from a psprices url.")
 async def obtain_id(ctx, url: str) -> None:
+    await ctx.defer()
 
     await PSNTool.obtain_skuid(ctx, url)
 
