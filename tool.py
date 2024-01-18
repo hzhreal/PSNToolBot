@@ -4,20 +4,23 @@ import re
 import discord
 from dotenv import load_dotenv
 import os
+
 load_dotenv()
 discordlink = "https://discord.gg/fHfmjaCXtb"
 
-class PSNTool:
-    def __init__(self):
-        pass
+class ToolError(Exception):
+    pass 
 
+class PSNTool:
     NPSSO = str(os.getenv("NPSSO"))
+    TOKEN_LEN = 88
 
     @staticmethod
     async def add_to_cart(ctx, sku_id: str, token: str, selected_region: str) -> None:
-        if sku_id.count("-") == 2 and token != "" and len(selected_region) == 5:
+        if sku_id.count("-") == 2 and len(token) == PSNTool.TOKEN_LEN:
             sku_get = await PSNTool.check_avatar(ctx, sku_id, token, selected_region, True)
-
+            URL = "https://web.np.playstation.com/api/graphql/v1/op"
+    
             psheaders = {
                 "Origin": "https://checkout.playstation.com",
                 "content-type": "application/json",
@@ -39,29 +42,28 @@ class PSNTool:
             }
             
             async with aiohttp.ClientSession() as session:
-                async with session.post("https://web.np.playstation.com/api/graphql/v1/op", headers=psheaders, json=psdata) as response:
+                async with session.post(URL, headers=psheaders, json=psdata) as response:
                     response.text = await response.text()
 
             if "subTotalPrice" in response.text:
                 embed_success = discord.Embed(title="Success", description=f"{sku_id} has been added to your cart.", color=discord.Color.blue())
                 embed_success.set_footer(text=f"Made by: hzh.\n{discordlink}")
                 await ctx.respond(embed=embed_success, ephemeral=True)
+
+            elif "Access denied! You need to be authorized to perform this action!" in response.text:
+                raise ToolError("Are you sure that the token is invalid? Make sure your session is not expired.")
+
+            elif "skuAlreadyInCart" in response.text:
+                raise ToolError("SKU is already in the cart.")
+            
             else:
-                embed_error = discord.Embed(title="Error", description="Can not add to cart.", color=discord.Color.red())
-                embed_error.set_footer(text=f"Made by: hzh.\n{discordlink}")
-                await ctx.respond(embed=embed_error, ephemeral=True)
-                return
+                raise ToolError("Cannot add to cart.")
         else:
-            embed_error1 = discord.Embed(title="Error", description="ID, token, or region is invalid.", color=discord.Color.red())
-            embed_error1.set_footer(text=f"Made by: hzh.\n{discordlink}")
-            await ctx.respond(embed=embed_error1, ephemeral=True)
-            return
+           raise ToolError("ID or token is invalid.")
 
     @staticmethod
     async def check_avatar(ctx, sku_id: str, token: str, selected_region: str, obtainonly: bool) -> str | None:
-
-        if sku_id.count("-") == 2 and token != "" and len(selected_region) == 5:
-
+        if sku_id.count("-") == 2 and len(token) == PSNTool.TOKEN_LEN:
             regionURL = selected_region.replace("-", "/")
 
             psheaders = {
@@ -81,10 +83,7 @@ class PSNTool:
             sku_get = sku_info.get("default_sku", {}).get("id")
 
             if sku_get is None:
-                embed_error2 = discord.Embed(title="Error", description="Can not obtain SkuID.", color=discord.Color.red())
-                embed_error2.set_footer(text=f"Made by: hzh.\n{discordlink}")
-                await ctx.respond(embed=embed_error2, ephemeral=True)
-                return
+                raise ToolError("Can not obtain SkuID.")
             else:
                 if obtainonly:
                     return sku_get
@@ -97,23 +96,22 @@ class PSNTool:
                     return picture_avatar
                
         else:
-            embed_error3 = discord.Embed(title="Error", description="ID, token, or region is invalid.", color=discord.Color.red())
-            embed_error3.set_footer(text=f"Made by: hzh.\n{discordlink}")
-            await ctx.respond(embed=embed_error3, ephemeral=True)
-            return
+            raise ToolError("ID or token is invalid.")
     
     @staticmethod
     async def obtain_skuid(ctx, url: str) -> str | None:
-        
-        pattern = r'\d+'
+        pattern = r"\d+"
         match = re.search(pattern, url)
 
         if match:
+            HEADERS = {"User-Agent": 
+                      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"}
+            
             psprices_value = match.group()
             url = f"https://psprices.com/game/buy/{psprices_value}"
 
             async with aiohttp.ClientSession() as session:
-                response = await session.get(url, allow_redirects=True)
+                response = await session.get(url, allow_redirects=True, headers=HEADERS)
 
             url = response.url
             target_parameter = url.query
@@ -122,12 +120,8 @@ class PSNTool:
             product_id = target_parameter.get("productId")
             embed_success2 = discord.Embed(title="Success", description=f"ProductID: {product_id}", color=discord.Color.blue())
             embed_success2.set_footer(text=f"Made by: hzh.\n{discordlink}")
-            await ctx.respond(embed=embed_success2, ephemeral=True)
+            await ctx.respond(embed=embed_success2)
             return product_id
 
         else:
-            print("NO MATCH: Could not obtain ID")
-            embed_error4 = discord.Embed(title="Error", description="Could not obtain ID.", color=discord.Color.red())
-            embed_error4.set_footer(text=f"Made by: hzh.\n{discordlink}")
-            await ctx.respond(embed=embed_error4, ephemeral=True)
-            return
+            raise ToolError("Could not obtain ID.")
