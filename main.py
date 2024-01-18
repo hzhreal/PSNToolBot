@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from tool import PSNTool
+from tool import PSNTool, ToolError
 import aiohttp
 import json
 import re
@@ -48,29 +48,44 @@ async def on_ready() -> None:
 
 @bot.slash_command(description="Adds the avatar you input in your cart.")
 async def add(ctx, token: str, id: str, region: str) -> None:
-    await ctx.defer()
+    await ctx.respond("Adding...", ephemeral=True)
 
     if region not in valid_regions:
         await ctx.respond(embed=invalid_region, ephemeral=True)
         return
 
-    await PSNTool.add_to_cart(ctx, id, token, region)
+    try:
+        await PSNTool.add_to_cart(ctx, id, token, region)
+    except ToolError as e:
+        embed_error = discord.Embed(title="Error", description=e, color=discord.Color.red())
+        embed_error.set_footer(text=f"Made by: hzh.\n{discordlink}")
+        await ctx.respond(embed=embed_error, ephemeral=True)
 
 @bot.slash_command(description="Checks an avatar for you.")
 async def check(ctx, token: str, id: str, region: str) -> None:
-    await ctx.defer()
+    await ctx.respond("Checking...", ephemeral=True)
 
     if region not in valid_regions:
         await ctx.respond(embed=invalid_region, ephemeral=True)
         return
-
-    await PSNTool.check_avatar(ctx, id, token, region, False)
+    
+    try:
+        await PSNTool.check_avatar(ctx, id, token, region, False)
+    except ToolError as e:
+        embed_error = discord.Embed(title="Error", description=e, color=discord.Color.red())
+        embed_error.set_footer(text=f"Made by: hzh.\n{discordlink}")
+        await ctx.respond(embed=embed_error, ephemeral=True)
 
 @bot.slash_command(description="Grabs the product ID from a psprices url.")
 async def obtain_id(ctx, url: str) -> None:
     await ctx.defer()
 
-    await PSNTool.obtain_skuid(ctx, url)
+    try:
+        await PSNTool.obtain_skuid(ctx, url)
+    except ToolError as e:
+        embed_error = discord.Embed(title="Error", description=e, color=discord.Color.red())
+        embed_error.set_footer(text=f"Made by: hzh.\n{discordlink}")
+        await ctx.respond(embed=embed_error)
 
 
 @bot.slash_command(description="Pings the bot.")
@@ -83,7 +98,7 @@ async def obtain_accid(ctx, username: str) -> None:
     await ctx.defer()
 
     limit = 0
-    usernamePattern = r'^[a-zA-Z0-9_-]+$'
+    usernamePattern = r"^[a-zA-Z0-9_-]+$"
 
     embnv1 = discord.Embed(title="Error: PS username not valid",
                       description="This PS username is not in a valid format.",
