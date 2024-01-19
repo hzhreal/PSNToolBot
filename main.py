@@ -13,6 +13,7 @@ NPSSO = os.getenv("NPSSO")
 
 if NPSSO is not None:
     from psnawp_api import PSNAWP
+    from psnawp_api.core.psnawp_exceptions import PSNAWPNotFound
     NPSSO = str(os.getenv("NPSSO"))
     psnawp = PSNAWP(NPSSO)
     print("psnawp initialized")
@@ -123,7 +124,7 @@ async def obtain_accid(ctx, username: str) -> None:
             embed_id = discord.Embed(title=username, description=f"ACCOUNT ID: **{user_id}**", color=discord.Color.blue())
             embed_id.set_footer(text=f"Made by: hzh.\n{discordlink}")
             await ctx.respond(embed=embed_id)
-        except:
+        except PSNAWPNotFound:
             iderror = discord.Embed(title="Error", 
                                         description=f"Can not obtain account id from {username}, do you have on the right privacy settings so that you can be found?",
                                         color=discord.Color.red())
