@@ -40,6 +40,18 @@ activity = discord.Activity(type=discord.ActivityType.watching, name="Avatars")
 invalid_region = discord.Embed(title="Error", description=f"Invalid region, make sure you have the last two letters in uppercase. Here are all valid regions:\n{valid_regionsShow}", color=discord.Color.red())
 invalid_region.set_footer(text=f"Made by: hzh.\n{discordlink}")
 
+async def errorHandling(ctx, error: str, ephemeral: bool) -> None:
+    embed_error = discord.Embed(title="Error", description=error, color=discord.Color.red())
+    embed_error.set_footer(text=f"Made by: hzh.\n{discordlink}")
+    await ctx.respond(embed=embed_error, ephemeral=ephemeral)
+
+def handle_accid(user_id: str) -> str:
+    user_id = hex(int(user_id)) # convert decimal to hex
+    user_id = user_id[2:] # remove 0x
+    user_id = user_id.zfill(16) # pad to 16 length with zeros
+
+    return user_id
+
 bot = commands.Bot(command_prefix="!", activity=activity)
 @bot.event
 async def on_ready() -> None:
@@ -58,9 +70,7 @@ async def add(ctx, token: str, id: str, region: str) -> None:
     try:
         await PSNTool.add_to_cart(ctx, id, token, region)
     except ToolError as e:
-        embed_error = discord.Embed(title="Error", description=e, color=discord.Color.red())
-        embed_error.set_footer(text=f"Made by: hzh.\n{discordlink}")
-        await ctx.respond(embed=embed_error, ephemeral=True)
+       await errorHandling(ctx, e, ephemeral=True)
 
 @bot.slash_command(description="Checks an avatar for you.")
 async def check(ctx, token: str, id: str, region: str) -> None:
@@ -73,9 +83,7 @@ async def check(ctx, token: str, id: str, region: str) -> None:
     try:
         await PSNTool.check_avatar(ctx, id, token, region, False)
     except ToolError as e:
-        embed_error = discord.Embed(title="Error", description=e, color=discord.Color.red())
-        embed_error.set_footer(text=f"Made by: hzh.\n{discordlink}")
-        await ctx.respond(embed=embed_error, ephemeral=True)
+       await errorHandling(ctx, e, ephemeral=True)
 
 @bot.slash_command(description="Grabs the product ID from a psprices url.")
 async def obtain_id(ctx, url: str) -> None:
@@ -84,9 +92,7 @@ async def obtain_id(ctx, url: str) -> None:
     try:
         await PSNTool.obtain_skuid(ctx, url)
     except ToolError as e:
-        embed_error = discord.Embed(title="Error", description=e, color=discord.Color.red())
-        embed_error.set_footer(text=f"Made by: hzh.\n{discordlink}")
-        await ctx.respond(embed=embed_error)
+       await errorHandling(ctx, e, ephemeral=False)
 
 
 @bot.slash_command(description="Pings the bot.")
@@ -101,35 +107,26 @@ async def obtain_accid(ctx, username: str) -> None:
     limit = 0
     usernamePattern = r"^[a-zA-Z0-9_-]+$"
 
-    embnv1 = discord.Embed(title="Error: PS username not valid",
-                      description="This PS username is not in a valid format.",
-                      colour=0x854bf7)
-    embnv1.set_thumbnail(url="https://cdn.discordapp.com/avatars/248104046924267531/743790a3f380feaf0b41dd8544255085.png?size=1024")
-    embnv1.set_footer(text="Made with expertise by HTOP")
+    eNV = "This PS username is not in a valid format."
 
     if len(username) < 3 or len(username) > 16:
-        await ctx.edit(embed=embnv1)
+        await errorHandling(ctx, eNV, ephemeral=False)
         return
     elif not bool(re.match(usernamePattern, username)):
-        await ctx.edit(embed=embnv1)
+        await errorHandling(ctx, eNV, ephemeral=False)
         return
     
     if NPSSO is not None:
         try:
             user = psnawp.user(online_id=username)
             user_id = user.account_id
-            user_id = hex(int(user_id)) # convert decimal to hex
-            user_id = user_id[2:] # remove 0x
-            user_id = user_id.zfill(16) # pad to 16 length with zeros
+            user_id = handle_accid(user_id)
             embed_id = discord.Embed(title=username, description=f"ACCOUNT ID: **{user_id}**", color=discord.Color.blue())
             embed_id.set_footer(text=f"Made by: hzh.\n{discordlink}")
             await ctx.respond(embed=embed_id)
         except PSNAWPNotFound:
-            iderror = discord.Embed(title="Error", 
-                                        description=f"Can not obtain account id from {username}, do you have on the right privacy settings so that you can be found?",
-                                        color=discord.Color.red())
-            iderror.set_footer(text=f"Made by: hzh.\n{discordlink}")
-            await ctx.respond(embed=iderror)
+            e = f"Can not obtain account id from {username}, do you have on the right privacy settings so that you can be found?"
+            await errorHandling(ctx, e, ephemeral=False)
     
     else:
         while True:
@@ -143,9 +140,7 @@ async def obtain_accid(ctx, username: str) -> None:
                 obtainedUsername = data["online_id"]
                 if obtainedUsername.lower() == username.lower():
                     user_id = data["user_id"]
-                    user_id = hex(int(user_id)) # convert decimal to hex
-                    user_id = user_id[2:] # remove 0x
-                    user_id = user_id.zfill(16) # pad to 16 length with zeros
+                    user_id = handle_accid(user_id)
                     embed_id = discord.Embed(title=username, description=f"ACCOUNT ID: **{user_id}**", color=discord.Color.blue())
                     embed_id.set_footer(text=f"Made by: hzh.\n{discordlink}")
                     await ctx.respond(embed=embed_id)
@@ -154,19 +149,13 @@ async def obtain_accid(ctx, username: str) -> None:
                     limit += 1
             else:
                 if limit == 20:
-                    iderror1 = discord.Embed(title="Error", 
-                                        description=f"Can not obtain account id from {username}, website does not give the right value back.",
-                                        color=discord.Color.red())
-                    iderror1.set_footer(text=f"Made by: hzh.\n{discordlink}")
-                    await ctx.respond(embed=iderror1)
+                    e = f"Can not obtain account id from {username}, website does not give the right value back."
+                    await errorHandling(ctx, e, ephemeral=False)
                     break
 
                 else:
-                    iderror = discord.Embed(title="Error", 
-                                            description=f"Can not obtain account id from {username}, do you have on the right privacy settings so that you can be found?",
-                                            color=discord.Color.red())
-                    iderror.set_footer(text=f"Made by: hzh.\n{discordlink}")
-                    await ctx.respond(embed=iderror)
+                    e = f"Can not obtain account id from {username}, do you have on the right privacy settings so that you can be found?"
+                    await errorHandling(ctx, e, ephemeral=False)
                     break
 
 bot.run(str(os.getenv("TOKEN"))) # token
