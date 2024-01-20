@@ -13,11 +13,10 @@ class ToolError(Exception):
 
 class PSNTool:
     NPSSO = str(os.getenv("NPSSO"))
-    TOKEN_LEN = 88
 
     @staticmethod
     async def add_to_cart(ctx, sku_id: str, token: str, selected_region: str) -> None:
-        if sku_id.count("-") == 2 and len(token) == PSNTool.TOKEN_LEN:
+        if sku_id.count("-") == 2:
             sku_get = await PSNTool.check_avatar(ctx, sku_id, token, selected_region, True)
             URL = "https://web.np.playstation.com/api/graphql/v1/op"
     
@@ -63,7 +62,7 @@ class PSNTool:
 
     @staticmethod
     async def check_avatar(ctx, sku_id: str, token: str, selected_region: str, obtainonly: bool) -> str | None:
-        if sku_id.count("-") == 2 and len(token) == PSNTool.TOKEN_LEN:
+        if sku_id.count("-") == 2:
             regionURL = selected_region.replace("-", "/")
 
             psheaders = {
