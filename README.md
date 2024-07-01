@@ -1,14 +1,6 @@
 # PSNToolBot
 Discord bot used to mainly add PlayStation 3 avatars to shopping cart, and obtain PlayStation account id from username.
 
-# Requirements
-- Latest Python
-  ```
-  pip install py-cord
-  pip install python-dotenv
-  pip install PSNAWP
-  ```
-
 # Tutorial
 
 ## NPSSO
@@ -18,11 +10,10 @@ How to obtain NPPSO:
 - Go to playstation.com and login
 - Go to this link https://ca.account.sony.com/api/v1/ssocookie
 - Find {"npsso":"<64 character npsso code>"}
-  
-if you leave it to "None" the psn.flipscreen.games website will be used to obtain account id. In addition to the avatar functionalities not working.
 
 ## Usage
+- Cd into the directory and run pip install -r requirements.txt
 - Put your NPSSO and Discord bot token in .env
-- Run main.py
+- Run bot.py
 
 Enjoy!
