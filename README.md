@@ -12,7 +12,7 @@ How to obtain NPPSO:
 - Find {"npsso":"<64 character npsso code>"}
 
 ## Usage
-- Cd into the directory and run pip install -r requirements.txt
+- Cd into the directory and run ```pip install -r requirements.txt```
 - Put your NPSSO and Discord bot token in .env
 - Run bot.py
 
