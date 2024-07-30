@@ -124,8 +124,7 @@ class PSN:
         
         picture_avatar = f"https://store.playstation.com/store/api/chihiro/00_09_000/container/{request.region.replace("-", "/")}/19/{request.product_id}/image"
         return picture_avatar
-            
-    
+
     async def add_to_cart(self, request: PSNRequest) -> None:
         sku_id = await self.check_avatar(request, obtain_skuget_only=True)
         self.request_builder(request, PSNOperation.ADD_TO_CART)

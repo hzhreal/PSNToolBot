@@ -10,9 +10,8 @@ bot = commands.Bot(command_prefix="!", activity=activity)
 
 @bot.event
 async def on_ready() -> None:
-    os.system("cls" if os.name == "nt" else "clear")
     print(
-        f"Bot is ready, invite link: https://discord.com/api/oauth2/authorize?client_id={bot.user.id}&permissions=8&scope=bot"
+        f"Bot is ready, invite link: https://discord.com/api/oauth2/authorize?client_id={bot.user.id}&permissions=8&scope=bot\n\n"
     )
 
 @bot.event
@@ -37,5 +36,5 @@ if __name__ == "__main__":
         bot.load_extension(f"cogs.{cog}")
         print(f"Loaded cog: {cog}.")
     
-    print("Starting bot...")
+    print("\nStarting bot...")
     bot.run(os.getenv("TOKEN"))
