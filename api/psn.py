@@ -1,10 +1,9 @@
-import discord
 import aiohttp
 import re
 from enum import Enum
 from dataclasses import dataclass
 from psnawp_api import PSNAWP
-from psnawp_api.core.psnawp_exceptions import PSNAWPNotFound
+from psnawp_api.core.psnawp_exceptions import PSNAWPNotFoundError
 from api.common import APIError
 
 USERNAME_PATTERN = re.compile(r"^[a-zA-Z0-9_-]+$")
@@ -159,7 +158,7 @@ class PSN:
         
         try:
             user = self.psnawp.user(online_id=username)
-        except PSNAWPNotFound:
+        except PSNAWPNotFoundError:
             raise APIError("User not found!")
         
         user_id = hex(int(user.account_id)) # convert decimal to hex
